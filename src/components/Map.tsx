@@ -1,10 +1,11 @@
 import React, { FunctionComponent, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { getMap, loadMap } from '../redux/map.module';
+import { getMap, loadMap, groupByMaterial } from '../redux/map.module';
 import { Map, GeoJSON, TileLayer } from 'react-leaflet';
 
 export const MapComponent: FunctionComponent<{}> = ({}) => {
     const map = useSelector(getMap);
+    const materials = useSelector(groupByMaterial);
     const dispatch = useDispatch();
     const center = [-28.016666, 153.399994];
 
@@ -12,7 +13,7 @@ export const MapComponent: FunctionComponent<{}> = ({}) => {
         console.log('map mount');
         dispatch(loadMap());
     }, [dispatch]); //dispatch is stable
-    console.log(map);
+    console.log(materials);
     return (
         <div className="mapview">
             { 
