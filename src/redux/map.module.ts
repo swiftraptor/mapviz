@@ -68,6 +68,7 @@ export const loadMapEpic = (action$: ActionsObservable<ReduxActionTypes>) => act
     ))
 ))
 
+// todo type out map prop
 interface MapState {
     isLoading: boolean,
     map: any,
@@ -112,7 +113,7 @@ export const getMap = (state: MapState) => state.map.map// improve this
 export const groupByMaterial = createSelector(
     getMap,
     map => map.features
-        .map(feature => ({ id: feature.id, material: feature.properties.material }))
+        ?.map(feature => ({ id: feature.id, material: feature.properties.material }))
         .reduce((accum, current) => {
             const { material } = current
             if (!accum[material]) {
