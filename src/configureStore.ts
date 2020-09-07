@@ -1,4 +1,4 @@
-import { reducer as mapReducer, loadMapEpic } from './map.module';
+import { reducer as mapReducer, loadMapEpic } from './mapview/mapViewModule';
 import { combineEpics, createEpicMiddleware } from 'redux-observable';
 import { createStore, combineReducers, applyMiddleware, Store } from 'redux';
 

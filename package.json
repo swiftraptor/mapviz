@@ -1,5 +1,5 @@
 {
-  "name": "vortexa",
+  "name": "mapviz",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -16,6 +16,7 @@
     "react-leaflet": "^2.7.0",
     "react-redux": "^7.2.1",
     "react-scripts": "3.4.3",
+    "recharts": "^1.8.5",
     "redux": "^4.0.5",
     "redux-observable": "^1.2.0",
     "reselect": "^4.0.0",

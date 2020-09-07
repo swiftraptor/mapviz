@@ -1,7 +1,6 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
-import MapComponent from './components/Map'
+import MapComponent from './mapview/mapViewComponent'
 
 function App() {
   return (
