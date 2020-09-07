@@ -80,7 +80,8 @@ export const reducer = (state = initialState, action: ReduxActionTypes) => {
 export const getMap = (state: MapState) => state.map.map// improve this
 export const groupByMaterial = createSelector(
     getMap,
-    map => map.features
+    map => {
+        const obj = map.features
         ?.map(feature => ({ id: feature.id, material: feature.properties.material }))
         .reduce((accum, current) => {
             const { material } = current
@@ -90,4 +91,6 @@ export const groupByMaterial = createSelector(
                 accum[material] = accum[material] + 1;
             }
             return accum;
-        }, {}));
+        }, {}) || {};
+        return Object.keys(obj).map(material => ({ name: material, count: obj[material] }))
+    });
