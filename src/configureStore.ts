@@ -1,6 +1,7 @@
 import { reducer as mapReducer, loadMapEpic } from './mapview/mapViewModule';
 import { combineEpics, createEpicMiddleware } from 'redux-observable';
 import { createStore, combineReducers, applyMiddleware, Store } from 'redux';
+import { composeWithDevTools } from 'redux-devtools-extension'
 
 const rootEpic = combineEpics(
     loadMapEpic
@@ -16,7 +17,7 @@ const epicMiddleware = createEpicMiddleware();
 const configureStore = (): Store => {
     const store = createStore(
         rootReducer,
-        applyMiddleware(epicMiddleware)
+        composeWithDevTools(applyMiddleware(epicMiddleware))
     );
     epicMiddleware.run(rootEpic);
     return store;

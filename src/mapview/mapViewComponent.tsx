@@ -1,19 +1,16 @@
 import React, { FunctionComponent, useRef } from 'react';
 import { connect } from 'react-redux';
-import { getMap, loadMap, groupByMaterial } from './mapViewModule';
+import { getMap, loadMap, groupByMaterial, zoomMap } from './mapViewModule';
 import { Map, GeoJSON, TileLayer } from 'react-leaflet';
 
 const MapViewComponent: FunctionComponent<{
     map: any,
-    loadMap: () => {},
-    onZoom: () => {} }> = ({ map, loadMap, onZoom }) => {
-    loadMap();
+    onZoom: (bounds: { northEast: object, southWest: object }, viewport: { center?: [number, number], zoom?: number }) => {} }> = ({ map, onZoom }) => {
     const center = [-28.016666, 153.399994];
     const mapRef = useRef<Map>(null);
 
-    const zoomCallback = (data) => {
-        console.log(data)
-        console.log(mapRef?.current?.leafletElement.getBounds())
+    const zoomCallback = (viewport: { center?: [number, number], zoom?: number }) => {
+        onZoom(mapRef.current?.leafletElement.getBounds(), viewport)
     }
 
     return (
@@ -39,9 +36,9 @@ const mapStateToProps = (state) => ({
 })
 
 const mapDispatchToProps = (dispatch) => ({
-    loadMap: () => dispatch(loadMap()),
-    onZoom: (viewport: { center?: [number, number], zoom?: number }, bounds: { northEast: object, southWest: object }) => {
+    onZoom: (bounds: { northEast: object, southWest: object }, viewport: { center?: [number, number], zoom?: number }) => {
         // dispatch action here to do funky calculations
+        dispatch(zoomMap(bounds, viewport))
     }  
 })
 

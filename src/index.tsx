@@ -5,9 +5,10 @@ import * as serviceWorker from './serviceWorker';
 import { Provider } from 'react-redux';
 import configureStore from './configureStore';
 import 'leaflet/dist/leaflet.css';
+import { loadMap } from './mapview/mapViewModule';
 
 const store = configureStore();
-
+store.dispatch(loadMap());
 ReactDOM.render(
   <React.StrictMode>
   <Provider store={store}>

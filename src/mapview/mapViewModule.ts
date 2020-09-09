@@ -5,7 +5,7 @@ import { ajax, AjaxResponse } from 'rxjs/ajax';
 import { filter, switchMap, map, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { createSelector } from 'reselect';
-import { LOAD_MAP, LOAD_MAP_FAILED, LOAD_MAP_SUCCESS, LoadMapAction, ReduxActionTypes, MapState } from './types'
+import { LOAD_MAP, LOAD_MAP_FAILED, LOAD_MAP_SUCCESS, LoadMapAction, ReduxActionTypes, MapState, Bounds, MapViewport, ZOOM_MAP } from './types'
 
 const loadMapRequest = () => ajax(`${process.env.PUBLIC_URL}/data/boat_ramps.geojson`)
 
@@ -34,6 +34,14 @@ const loadMapFailed = (error: Error): ReduxActionTypes => {
     }
 }
 
+export const zoomMap = (bounds: Bounds, viewport: MapViewport) => ({
+    type: ZOOM_MAP,
+    payload: {
+        bounds: bounds,
+        viewport: viewport
+    }
+})
+
 export const loadMapEpic = (action$: ActionsObservable<ReduxActionTypes>) => action$.pipe(
     filter(isOfType(LOAD_MAP)),
     switchMap((action: LoadMapAction) => loadMapRequest().pipe(
@@ -46,7 +54,7 @@ export const loadMapEpic = (action$: ActionsObservable<ReduxActionTypes>) => act
 const initialState: MapState = {
     isLoading: false,
     map: {},
-    error: undefined
+    error: undefined,
 }
 
 export const reducer = (state = initialState, action: ReduxActionTypes) => {
@@ -71,13 +79,30 @@ export const reducer = (state = initialState, action: ReduxActionTypes) => {
                 error: action.payload.error,
             }
         
+        case ZOOM_MAP:
+            // we need to project a view over the underlying map data
+            return {
+                ...state,
+                viewport: action.payload.viewport,
+                bounds: action.payload.bounds
+            }
+
+        
         default:
             return state
     }
 }
 
 // TODO figure out geojson structure so we can improve mapstate object
-export const getMap = (state: MapState) => state.map.map// improve this
+export const getMap = (state: MapState) => {
+    if (state.map.viewport && state.map.bounds) {
+        console.log('i have been called')
+        // filter here
+        return state.map.map
+    } else {
+        return state.map.map
+    }
+}// improve this
 export const groupByMaterial = createSelector(
     getMap,
     map => {
