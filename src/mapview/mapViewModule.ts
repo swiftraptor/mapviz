@@ -5,7 +5,7 @@ import { ajax, AjaxResponse } from 'rxjs/ajax';
 import { filter, switchMap, map, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { createSelector } from 'reselect';
-import { LOAD_MAP, LOAD_MAP_FAILED, LOAD_MAP_SUCCESS, LoadMapAction, ReduxActionTypes, MapState, Bounds, MapViewport, ZOOM_MAP } from './types'
+import { LOAD_MAP, LOAD_MAP_FAILED, LOAD_MAP_SUCCESS, LoadMapAction, ReduxActionTypes, MapState, Bounds, MapViewport, ZOOM_MAP, SET_MAP_FILTER, RESET_MAP_FILTER } from './types'
 
 const loadMapRequest = () => ajax(`${process.env.PUBLIC_URL}/data/boat_ramps.geojson`)
 
@@ -42,6 +42,18 @@ export const zoomMap = (bounds: Bounds, viewport: MapViewport) => ({
     }
 })
 
+export const setMapFilter = (propName: string, propValue: any) => ({
+    type: SET_MAP_FILTER,
+    payload: {
+        filter: {
+            propName: propName,
+            propValue: propValue
+        }
+    }
+})
+
+export const resetMapFilter = () => ({ type: RESET_MAP_FILTER })
+
 export const loadMapEpic = (action$: ActionsObservable<ReduxActionTypes>) => action$.pipe(
     filter(isOfType(LOAD_MAP)),
     switchMap((action: LoadMapAction) => loadMapRequest().pipe(
@@ -55,6 +67,7 @@ const initialState: MapState = {
     isLoading: false,
     map: {},
     error: undefined,
+    filter: undefined,
 }
 
 export const reducer = (state = initialState, action: ReduxActionTypes) => {
@@ -86,6 +99,18 @@ export const reducer = (state = initialState, action: ReduxActionTypes) => {
                 viewport: action.payload.viewport,
                 bounds: action.payload.bounds
             }
+        
+        case SET_MAP_FILTER:
+            return {
+                ...state,
+                filter: action.payload.filter
+            }
+        
+        case RESET_MAP_FILTER:
+            return {
+                ...state,
+                filter: undefined
+            }
 
         
         default:
@@ -101,22 +126,50 @@ const featuresWithinBounds = (features: any[], bounds: Bounds) => {
         && geometry.coordinates[0][0][0][1] > bounds.southWest.lat
     )
 }
+
+// this will only filter on .properties
+const featuresMatchingProp = (features: any[], propName: string, propValue: any) => {
+    return features.filter(feature => feature.properties[propName] === propValue)
+}
+
 // TODO figure out geojson structure so we can improve mapstate object
 export const getMap = (state: MapState) => {
-    if (state.map.viewport && state.map.bounds) {
-        // filter here
 
-        const filteredFeatures = featuresWithinBounds(state.map.map.features, state.map.bounds)
-
+    // figure out what filters to apply
+    const applyViewFilter = state.map.viewport && state.map.bounds
+    const applyFeatureFilter = !!state.map.filter
+    
+    if (!applyFeatureFilter && !applyViewFilter) {
+        return state.map.map;
+    } else if (!applyFeatureFilter && applyViewFilter) {
+        const viewFilteredFeatures = featuresWithinBounds(state.map.map.features, state.map.bounds);
         const newMap = {
             type: 'FeatureCollection',
-            features: filteredFeatures,
-            totalFeatures: filteredFeatures.length
+            features: viewFilteredFeatures,
+            totalFeatures: viewFilteredFeatures.length
+        }
+        return newMap;
+    } else if (!applyViewFilter && applyFeatureFilter) {
+        const featureFilteredFeatures = featuresMatchingProp(state.map.map.features, state.map.filter.propName, state.map.filter.propValue);
+        const newMap = {
+            type: 'FeatureCollection',
+            features: featureFilteredFeatures,
+            totalFeatures: featureFilteredFeatures.length
+        }
+        return newMap;
+    } else {
+        const filtered = featuresMatchingProp(
+            featuresWithinBounds(state.map.map.features, state.map.bounds),
+            state.map.filter.propName,
+            state.map.filter.propValue
+        );
+        const newMap = {
+            type: 'FeatureCollection',
+            features: filtered,
+            totalFeatures: filtered.length
         }
 
-       return newMap
-    } else {
-        return state.map.map
+        return newMap;
     }
 }// improve this
 export const groupByMaterial = createSelector(
