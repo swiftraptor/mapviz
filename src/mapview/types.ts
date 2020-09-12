@@ -6,8 +6,14 @@ export const LOAD_MAP_FAILED = 'LOAD_MAP_FAILED';
 export const ZOOM_MAP = 'ZOOM_MAP';
 
 export interface Bounds {
-    northEast: object,
-    southWest: object
+    northEast: {
+        lng: number,
+        lat: number
+    },
+    southWest: {
+        lng: number,
+        lat: number
+    }
 }
 
 export interface MapViewport {

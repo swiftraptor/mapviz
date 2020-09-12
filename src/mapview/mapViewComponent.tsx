@@ -36,9 +36,9 @@ const mapStateToProps = (state) => ({
 })
 
 const mapDispatchToProps = (dispatch) => ({
-    onZoom: (bounds: { northEast: object, southWest: object }, viewport: { center?: [number, number], zoom?: number }) => {
+    onZoom: (bounds: { _northEast: { lat: number, lng: number }, _southWest: { lat: number, lng: number } }, viewport: { center?: [number, number], zoom?: number }) => {
         // dispatch action here to do funky calculations
-        dispatch(zoomMap(bounds, viewport))
+        dispatch(zoomMap({ northEast: bounds._northEast, southWest: bounds._southWest }, viewport))
     }  
 })
 

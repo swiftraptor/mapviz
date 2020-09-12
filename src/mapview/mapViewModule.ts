@@ -93,12 +93,28 @@ export const reducer = (state = initialState, action: ReduxActionTypes) => {
     }
 }
 
+const featuresWithinBounds = (features: any[], bounds: Bounds) => {
+    return features.filter(({ geometry }) => 
+        geometry.coordinates[0][0][0][0] < bounds.northEast.lng
+        && geometry.coordinates[0][0][0][1] < bounds.northEast.lat
+        && geometry.coordinates[0][0][0][0] > bounds.southWest.lng
+        && geometry.coordinates[0][0][0][1] > bounds.southWest.lat
+    )
+}
 // TODO figure out geojson structure so we can improve mapstate object
 export const getMap = (state: MapState) => {
     if (state.map.viewport && state.map.bounds) {
-        console.log('i have been called')
         // filter here
-        return state.map.map
+
+        const filteredFeatures = featuresWithinBounds(state.map.map.features, state.map.bounds)
+
+        const newMap = {
+            type: 'FeatureCollection',
+            features: filteredFeatures,
+            totalFeatures: filteredFeatures.length
+        }
+
+       return newMap
     } else {
         return state.map.map
     }
