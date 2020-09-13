@@ -22,3 +22,6 @@ Once you've built the application, you copy the files generated in `build/` to a
 * Reset filter
 * Map markers showing location of each ramp
 * Markers are clickable - popup showing ramp address, longitude and latitude appears on click
+
+## Feature ideas, bug reports, comments
+Please open a github issue
