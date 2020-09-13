@@ -25,8 +25,7 @@ export interface MapViewport {
 }
 
 export interface MapFilter {
-    propertyName: string,
-    propertyValue: any
+    predicate: (feature: any) => {}
 }
 
 export interface ZoomMapAction {

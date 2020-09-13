@@ -42,12 +42,11 @@ export const zoomMap = (bounds: Bounds, viewport: MapViewport) => ({
     }
 })
 
-export const setMapFilter = (propName: string, propValue: any) => ({
+export const setMapFilter = (predicateFunc: (feature: any) => {}) => ({
     type: SET_MAP_FILTER,
     payload: {
         filter: {
-            propName: propName,
-            propValue: propValue
+            predicate: predicateFunc
         }
     }
 })
@@ -128,8 +127,8 @@ const featuresWithinBounds = (features: any[], bounds: Bounds) => {
 }
 
 // this will only filter on .properties
-const featuresMatchingProp = (features: any[], propName: string, propValue: any) => {
-    return features.filter(feature => feature.properties[propName] === propValue)
+const featuresMatchingProp = (features: any[], featurePredicate: (feature: any) => {}) => {
+    return features.filter(feature => featurePredicate(feature))
 }
 
 // TODO figure out geojson structure so we can improve mapstate object
@@ -150,7 +149,7 @@ export const getMap = (state: MapState) => {
         }
         return newMap;
     } else if (!applyViewFilter && applyFeatureFilter) {
-        const featureFilteredFeatures = featuresMatchingProp(state.map.map.features, state.map.filter.propName, state.map.filter.propValue);
+        const featureFilteredFeatures = featuresMatchingProp(state.map.map.features, state.map.filter.predicate);
         const newMap = {
             type: 'FeatureCollection',
             features: featureFilteredFeatures,
@@ -160,8 +159,7 @@ export const getMap = (state: MapState) => {
     } else {
         const filtered = featuresMatchingProp(
             featuresWithinBounds(state.map.map.features, state.map.bounds),
-            state.map.filter.propName,
-            state.map.filter.propValue
+            state.map.filter.predicate
         );
         const newMap = {
             type: 'FeatureCollection',
@@ -171,7 +169,8 @@ export const getMap = (state: MapState) => {
 
         return newMap;
     }
-}// improve this
+}
+
 export const groupByMaterial = createSelector(
     getMap,
     map => {
@@ -187,4 +186,29 @@ export const groupByMaterial = createSelector(
             return accum;
         }, {}) || {};
         return Object.keys(obj).map(material => ({ name: material, count: obj[material] }))
+    });
+
+export const groupByArea = createSelector(
+    getMap,
+    map => {
+        const areas = map.features
+            ?.map(feature => ({ id: feature.id, area: feature.properties.area_ }))
+            .reduce((accum, current) => {
+                const { area } = current
+                let label = 'N/A'
+                if (area < 50) label = '0-50'
+                if (area >= 50 && area < 200) label = '50-200'
+                if (area >= 200 && area <= 526) label = '200-526'
+
+                if (!accum[label]) {
+                    accum[label] = 1
+                } else {
+                    accum[label] = accum[label] + 1
+                }
+                return accum
+            }, {}) || {};
+        
+        return Object.keys(areas)
+            .map(areaCategory => ({ name: areaCategory, count: areas[areaCategory], upperBound: Number(areaCategory.split('-')[1]) }))
+            .sort((a, b) => a.upperBound - b.upperBound)
     });
