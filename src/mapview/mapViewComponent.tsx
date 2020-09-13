@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useRef } from 'react';
+import React, { FunctionComponent, SyntheticEvent, useEffect, useRef, useState } from 'react';
 import { connect } from 'react-redux';
 import { getMap, zoomMap } from './mapViewModule';
 import { Map, GeoJSON, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -9,6 +9,52 @@ const markerIcon = new Leaflet.Icon({
     iconSize: [40, 60]
 })
 
+// add a nice address popup to the map
+const MapVizPopup: FunctionComponent<{ feature: any, fetchPosition: boolean }> = ({ feature, fetchPosition }) => {
+    const [address, setAddress] = useState<string>('');
+    const longitude = feature.geometry.coordinates[0][0][0][0]
+    const latitude = feature.geometry.coordinates[0][0][0][1]
+    useEffect(() => {
+        const fetchAddress = async() => {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lon=${longitude}&lat=${latitude}&format=json`)
+            response.json().then(response => {
+                setAddress(response.display_name)
+            }).catch(err => console.error(err))
+        }
+    
+        if (fetchPosition) {
+            fetchAddress();
+        }
+    }, [fetchPosition, longitude, latitude])
+
+    return (
+        <Popup>
+            <span>{ address }</span><hr />
+            <span>Latitude: {latitude}</span><br/>
+            <span>Longitude: {longitude}</span>
+        </Popup>
+    )
+}
+
+const MapVizMarker: FunctionComponent<{ feature: any }> = ({ feature }) => {
+    const [markerClicked, setMarkerClicked] = useState(false)
+
+    const onMarkerClick = (e: SyntheticEvent) => {
+        setMarkerClicked(!markerClicked)
+    }
+    return (
+        <Marker
+        position={[
+            feature.geometry.coordinates[0][0][0][1],
+            feature.geometry.coordinates[0][0][0][0]
+        ]}
+        icon={markerIcon}
+        onClick={onMarkerClick}
+        >
+            { <MapVizPopup feature={feature} fetchPosition={markerClicked} /> }
+        </Marker>
+    )
+}
 const MapViewComponent: FunctionComponent<{
     map: any,
     onZoom: (bounds: { northEast: object, southWest: object }, viewport: { center?: [number, number], zoom?: number }) => {} }> = ({ map, onZoom }) => {
@@ -30,17 +76,7 @@ const MapViewComponent: FunctionComponent<{
         />
                         <GeoJSON data={map} />
                         {map.features.map(feature => (
-                            <Marker
-                            position={[
-                                feature.geometry.coordinates[0][0][0][1],
-                                feature.geometry.coordinates[0][0][0][0]
-                            ]}
-                            icon={markerIcon}
-                            >
-                                <Popup>
-                                    {feature.properties.asset_numb}
-                                </Popup>
-                            </Marker>
+                           <MapVizMarker feature={feature} />
                         ))}
                     </Map>
                 ): null

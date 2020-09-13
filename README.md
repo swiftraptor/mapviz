@@ -4,12 +4,12 @@ Simple geo json visualiser. Built in Typescript and React. Uses Redux for state 
 
 ## Build instructions
 
+### Install Dependencies
+`$ npm install`
+
 ### Lint
 `$ npm run lint`
 
 ### Build
-`$ npm run build`
-
-
-## Demo
-https://www.youtube.com/watch?v=i9ATy3HL7gY
+```$ npm run build```
+Once you've built the application, you copy the files generated in `build/` to any static web server of your choice.
