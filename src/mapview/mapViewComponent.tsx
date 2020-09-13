@@ -23,7 +23,7 @@ const MapViewComponent: FunctionComponent<{
         <div className="mapview">
             { 
                 Object.keys(map).length > 0 ? (
-                    <Map zoom={14} center={center} onViewportChanged={zoomCallback} ref={mapRef}>
+                    <Map zoom={10} center={center} onViewportChanged={zoomCallback} ref={mapRef}>
                                 <TileLayer
           attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
           url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'

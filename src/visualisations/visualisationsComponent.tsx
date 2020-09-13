@@ -2,7 +2,6 @@ import React, { FunctionComponent } from 'react';
 import { connect } from 'react-redux';
 import { ResponsiveBar } from '@nivo/bar';
 import { groupByMaterial, groupByArea, setMapFilter, resetMapFilter } from '../mapview/mapViewModule';
-import { features } from 'process';
 
 // pie chart for material viz was not very nice (transitions were janky)
 const MaterialVisualisation: FunctionComponent<{ materials: [], materialFilter: (material: string) => {} }> = ({ materials, materialFilter }) => {
@@ -10,19 +9,21 @@ const MaterialVisualisation: FunctionComponent<{ materials: [], materialFilter: 
         <div style={{ height: "45%" }}>
             <ResponsiveBar
                 data={materials}
-                margin={{ top: 50, bottom: 50 }}
+                margin={{ top: 50, bottom: 50, left: 50 }}
                 keys={['count']}
                 indexBy={'name'}
-                colors={{ scheme: 'nivo' }}
+                padding={0.3}
+                colors={'#00B34A'}
+                labelTextColor={'white'}
                 axisBottom={{
-                    legend: 'name',
+                    legend: 'Material',
                     legendPosition: 'middle',
                     legendOffset: 32
                 }}
                 axisLeft={{
-                    legend: 'count',
+                    legend: 'Number of Ramps',
                     legendPosition: 'middle',
-                    legendOffset: 32
+                    legendOffset: -40
                 }}
                 onClick={(node, event) => {
                     event.preventDefault()
@@ -38,13 +39,14 @@ const AreaVisualisation: FunctionComponent<{
         areaFilter: (areaCategory: string) => {}
 }> = ({ areas, areaFilter }) => (
     <>
-        <div style={{ height: "50%" }}>
+        <div style={{ height: "45%" }}>
             <ResponsiveBar
                 data={areas}
-                margin={{ top: 50, bottom: 50 }}
+                margin={{ top: 50, bottom: 50, left: 50 }}
                 keys={['count']}
                 indexBy={'name'}
-                colors={{ scheme: 'nivo' }}
+                colors={'#198BFF'}
+                labelTextColor={'white'}
                 axisBottom={{
                     legend: 'Area',
                     legendPosition: 'middle',
@@ -53,7 +55,7 @@ const AreaVisualisation: FunctionComponent<{
                 axisLeft={{
                     legend: 'Ramps within range',
                     legendPosition: 'middle',
-                    legendOffset: 32
+                    legendOffset: -40
                 }}
                 onClick={(node, event) => {
                     event.preventDefault()
@@ -69,20 +71,24 @@ const VisualisationsComponent: FunctionComponent<{
     areas: [],
     areaFilter: (areaCategory: string) => {},
     materialFilter: (material: string) => {},
-    resetFilter: () => {}
-}> = ({ materials, areas, materialFilter, areaFilter, resetFilter }) => {
+    resetFilter: () => {},
+    filterActive: boolean
+}> = ({ materials, areas, materialFilter, areaFilter, resetFilter, filterActive }) => {
     return (
         <div className="visualisations">
-            <button className="reset-btn" onClick={resetFilter}>Reset</button>
             <MaterialVisualisation materials={materials} materialFilter={materialFilter} />
             <AreaVisualisation areas={areas} areaFilter={areaFilter} />
+            <div className="visualisation-actions">
+                <button className={`btn-reset ${ !filterActive ? 'disabled': null }`} onClick={resetFilter} disabled={!filterActive}>Reset Filter</button>
+            </div>
         </div>
     )
 }
 
 const mapStateToProps = (state) => ({
     materials: groupByMaterial(state),
-    areas: groupByArea(state)
+    areas: groupByArea(state),
+    filterActive: !!state.map.filter
 })
 
 const mapDispatchToProps = (dispatch) => ({
