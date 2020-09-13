@@ -1,7 +1,13 @@
 import React, { FunctionComponent, useRef } from 'react';
 import { connect } from 'react-redux';
-import { getMap, loadMap, groupByMaterial, zoomMap } from './mapViewModule';
-import { Map, GeoJSON, TileLayer } from 'react-leaflet';
+import { getMap, zoomMap } from './mapViewModule';
+import { Map, GeoJSON, TileLayer, Marker, Popup } from 'react-leaflet';
+import Leaflet from 'leaflet';
+
+const markerIcon = new Leaflet.Icon({
+    iconUrl: `${process.env.PUBLIC_URL}/map_marker.svg`,
+    iconSize: [40, 60]
+})
 
 const MapViewComponent: FunctionComponent<{
     map: any,
@@ -23,6 +29,19 @@ const MapViewComponent: FunctionComponent<{
           url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
         />
                         <GeoJSON data={map} />
+                        {map.features.map(feature => (
+                            <Marker
+                            position={[
+                                feature.geometry.coordinates[0][0][0][1],
+                                feature.geometry.coordinates[0][0][0][0]
+                            ]}
+                            icon={markerIcon}
+                            >
+                                <Popup>
+                                    {feature.properties.asset_numb}
+                                </Popup>
+                            </Marker>
+                        ))}
                     </Map>
                 ): null
             }
@@ -32,7 +51,6 @@ const MapViewComponent: FunctionComponent<{
 
 const mapStateToProps = (state) => ({
     map: getMap(state),
-    materials: groupByMaterial(state)
 })
 
 const mapDispatchToProps = (dispatch) => ({
